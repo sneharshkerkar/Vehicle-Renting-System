@@ -1,4 +1,11 @@
-import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import {
+  Button,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio
+} from '@mui/material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -21,6 +28,16 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
     }
   }, [formData.wheels]);
 
+  const handleVehicleTypeSelect = (e) => {
+    const selectedTypeName = e.target.value;
+    const selectedType = vehicleTypes.find((type) => type.name === selectedTypeName);
+
+    updateForm({
+      vehicleType: selectedType.name,
+      vehicleTypeId: selectedType.id
+    });
+  };
+
   const handleNext = () => {
     if (formData.vehicleType) {
       setError(false);
@@ -37,7 +54,7 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
         <FormLabel>Choose a vehicle type</FormLabel>
         <RadioGroup
           value={formData.vehicleType}
-          onChange={(e) => updateForm({ vehicleType: e.target.value })}
+          onChange={handleVehicleTypeSelect}
         >
           {vehicleTypes.map((type) => (
             <FormControlLabel key={type.id} value={type.name} control={<Radio />} label={type.name} />

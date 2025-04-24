@@ -2,7 +2,12 @@
 const { Vehicle } = require('../models');
 
 const getVehiclesByType = async (req, res) => {
-  const { typeId } = req.query;
+  const typeId = parseInt(req.query.typeId, 10);
+
+  if (!typeId || isNaN(typeId)) {
+    return res.status(400).json({ message: 'Invalid or missing typeId parameter' });
+  }
+
   try {
     const vehicles = await Vehicle.findAll({
       where: { vehicleTypeId: typeId }
