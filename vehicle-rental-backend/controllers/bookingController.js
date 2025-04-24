@@ -1,4 +1,4 @@
-const { Booking } = require('../models');
+const { Booking, Vehicle } = require('../models');
 const { Op } = require('sequelize');
 
 exports.createBooking = async (req, res) => {
@@ -13,11 +13,10 @@ exports.createBooking = async (req, res) => {
       endDate,
     } = req.body;
 
-    // Parse dates to ensure proper comparison
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Check for overlapping bookings for the same vehicle
+    // 🔍 Check for overlapping bookings
     const overlappingBooking = await Booking.findOne({
       where: {
         vehicleId,
@@ -43,19 +42,28 @@ exports.createBooking = async (req, res) => {
     });
 
     if (overlappingBooking) {
-      // Send 409 Conflict if there's an overlapping booking
       return res.status(409).json({
-        message: 'This vehicle is already booked for the selected date range. Please select a different vehicle or a different date.',
+        message:
+          'This vehicle is already booked for the selected date range. Please select a different vehicle or a different date.',
       });
     }
 
-    // Proceed with booking if no overlap
+    // 🚗 Fetch the vehicle name before creating booking
+    const vehicle = await Vehicle.findByPk(vehicleId);
+    if (!vehicle) {
+      return res.status(400).json({
+        message: 'Selected vehicle does not exist.',
+      });
+    }
+
+    // ✅ Create booking with vehicleName included
     const booking = await Booking.create({
       firstName,
       lastName,
       wheels,
       vehicleTypeId,
       vehicleId,
+      vehicleName: vehicle.name, // new field
       startDate: start,
       endDate: end,
     });
@@ -65,7 +73,6 @@ exports.createBooking = async (req, res) => {
   } catch (error) {
     console.error('Error while creating booking:', error);
 
-    // Check for validation errors
     if (error.name === 'SequelizeValidationError') {
       console.error('Validation errors:', error.errors);
       return res.status(400).json({
@@ -74,7 +81,6 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Handle general internal server errors
     return res.status(500).json({
       message: 'Something went wrong while booking. Please try again later.',
       error: error.message,
