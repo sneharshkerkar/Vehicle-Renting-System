@@ -1,14 +1,24 @@
 import { Button, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
   const [error, setError] = useState(false);
   const [vehicleTypes, setVehicleTypes] = useState([]);
 
   useEffect(() => {
-    // Mocked vehicle types based on wheel count
-    const types = formData.wheels === "2" ? ["Scooter", "Motorbike"] : ["Sedan", "SUV", "Truck"];
-    setVehicleTypes(types);
+    const fetchVehicleTypes = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3000/api/vehicle-types?wheels=${formData.wheels}`);
+        setVehicleTypes(res.data);
+      } catch (err) {
+        console.error("Error fetching vehicle types", err);
+      }
+    };
+
+    if (formData.wheels) {
+      fetchVehicleTypes();
+    }
   }, [formData.wheels]);
 
   const handleNext = () => {
@@ -29,8 +39,8 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
           value={formData.vehicleType}
           onChange={(e) => updateForm({ vehicleType: e.target.value })}
         >
-          {vehicleTypes.map((type, index) => (
-            <FormControlLabel key={index} value={type} control={<Radio />} label={type} />
+          {vehicleTypes.map((type) => (
+            <FormControlLabel key={type.id} value={type.name} control={<Radio />} label={type.name} />
           ))}
         </RadioGroup>
       </FormControl>

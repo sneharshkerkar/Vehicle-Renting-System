@@ -1,25 +1,33 @@
 require('dotenv').config();
 
+const {
+  DB_USER = 'root',
+  DB_PASS = 'password',
+  DB_NAME = 'vehicle_rental_db',
+  DB_HOST = '127.0.0.1',
+  DB_DIALECT = 'mysql'
+} = process.env;
+
 module.exports = {
   development: {
-    username: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || null,
-    database: process.env.DB_NAME || 'vehicle_rental_db',
-    host: process.env.DB_HOST || '127.0.0.1',
-    dialect: process.env.DB_DIALECT || 'mysql'
+    username: DB_USER,
+    password: DB_PASS,
+    database: DB_NAME,
+    host: DB_HOST,
+    dialect: DB_DIALECT
   },
   test: {
-    username: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || null,
-    database: process.env.DB_NAME || 'vehicle_rental_db_test',
-    host: process.env.DB_HOST || '127.0.0.1',
-    dialect: process.env.DB_DIALECT || 'mysql'
+    username: DB_USER,
+    password: DB_PASS,
+    database: `${DB_NAME}_test`,
+    host: DB_HOST,
+    dialect: DB_DIALECT
   },
   production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT
+    username: DB_USER,
+    password: DB_PASS,
+    database: DB_NAME,
+    host: DB_HOST,
+    dialect: DB_DIALECT
   }
 };
