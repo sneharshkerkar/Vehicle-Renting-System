@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -8,6 +8,7 @@ import VehicleTypeStep from './components/VehicleTypeStep';
 import ModelStep from './components/ModelStep';
 import DateRangeStep from './components/DateRangeStep';
 import BookingConfirmation from './components/BookingConfirmation';
+import ToastNotification from './components/ToastNotification'; // Import the ToastNotification component
 
 const BookingForm = () => {
   const [step, setStep] = useState(0);
@@ -23,6 +24,7 @@ const BookingForm = () => {
     startDate: '',
     endDate: '',
   });
+  const [errorMessage, setErrorMessage] = useState(null); // State to handle error messages
 
   const updateForm = (newData) => setFormData((prev) => ({ ...prev, ...newData }));
   const nextStep = () => setStep((prev) => prev + 1);
@@ -33,18 +35,21 @@ const BookingForm = () => {
       const res = await axios.post('http://localhost:3000/api/bookings', formData);
       console.log('Booking successful:', res.data);
 
-      // Navigate to confirmation page
       navigate('/confirmation', {
         state: {
           booking: {
             ...formData,
-            ...res.data, // In case backend returns additional data
+            ...res.data,
           }
         }
       });
     } catch (err) {
-      console.error('Booking submission failed:', err);
-      alert('Failed to submit booking. Try again.');
+      if (err.response && err.response.status === 409) {
+        setErrorMessage(err.response.data.message); // Set the error message if overlapping dates
+      } else {
+        console.error('Booking submission failed:', err);
+        setErrorMessage('Something went wrong while booking. Please try again later.');
+      }
     }
   };
 
@@ -53,12 +58,18 @@ const BookingForm = () => {
     <WheelsStep formData={formData} updateForm={updateForm} nextStep={nextStep} prevStep={prevStep} />,
     <VehicleTypeStep formData={formData} updateForm={updateForm} nextStep={nextStep} prevStep={prevStep} />,
     <ModelStep formData={formData} updateForm={updateForm} nextStep={nextStep} prevStep={prevStep} />,
-    <DateRangeStep formData={formData} updateForm={updateForm} prevStep={prevStep} onSubmit={onSubmit} />
+    <DateRangeStep formData={formData} updateForm={updateForm} prevStep={prevStep} onSubmit={onSubmit} />,
   ];
 
   return (
     <div className="max-w-xl mx-auto p-4 min-h-screen flex items-center justify-center">
-      <div className="w-full shadow-lg rounded-2xl p-6 bg-white">{steps[step]}</div>
+      <div className="w-full shadow-lg rounded-2xl p-6 bg-white">
+        {steps[step]}
+      </div>
+
+      {errorMessage && (
+        <ToastNotification message={errorMessage} onClose={() => setErrorMessage(null)} />
+      )}
     </div>
   );
 };

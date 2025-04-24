@@ -1,4 +1,5 @@
 const { Booking } = require('../models');
+const { Op } = require('sequelize');
 
 exports.createBooking = async (req, res) => {
   try {
@@ -12,19 +13,71 @@ exports.createBooking = async (req, res) => {
       endDate,
     } = req.body;
 
+    // Parse dates to ensure proper comparison
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Check for overlapping bookings for the same vehicle
+    const overlappingBooking = await Booking.findOne({
+      where: {
+        vehicleId,
+        [Op.or]: [
+          {
+            startDate: {
+              [Op.between]: [start, end],
+            },
+          },
+          {
+            endDate: {
+              [Op.between]: [start, end],
+            },
+          },
+          {
+            [Op.and]: [
+              { startDate: { [Op.lte]: start } },
+              { endDate: { [Op.gte]: end } },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (overlappingBooking) {
+      // Send 409 Conflict if there's an overlapping booking
+      return res.status(409).json({
+        message: 'This vehicle is already booked for the selected date range. Please select a different vehicle or a different date.',
+      });
+    }
+
+    // Proceed with booking if no overlap
     const booking = await Booking.create({
       firstName,
       lastName,
       wheels,
       vehicleTypeId,
       vehicleId,
-      startDate,
-      endDate,
+      startDate: start,
+      endDate: end,
     });
 
-    res.status(201).json(booking);
+    return res.status(201).json(booking);
+
   } catch (error) {
-    console.error("Booking creation failed:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error while creating booking:', error);
+
+    // Check for validation errors
+    if (error.name === 'SequelizeValidationError') {
+      console.error('Validation errors:', error.errors);
+      return res.status(400).json({
+        message: 'Validation error(s) occurred.',
+        errors: error.errors.map(err => err.message),
+      });
+    }
+
+    // Handle general internal server errors
+    return res.status(500).json({
+      message: 'Something went wrong while booking. Please try again later.',
+      error: error.message,
+    });
   }
 };
