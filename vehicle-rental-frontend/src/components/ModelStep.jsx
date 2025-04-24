@@ -21,18 +21,27 @@ const ModelStep = ({ formData, updateForm, nextStep, prevStep }) => {
         const res = await axios.get(
           `http://localhost:3000/api/vehicles?typeId=${formData.vehicleTypeId}`
         );
-        const modelNames = res.data.map((vehicle) => vehicle.name);
-        setModels(modelNames);
+        setModels(res.data); // Expecting [{ id, name }]
       } catch (err) {
         console.error("Error fetching vehicle models", err);
       }
     };
 
     fetchModels();
-  }, [formData.vehicleTypeId]);  // Re-run this whenever vehicleTypeId changes
+  }, [formData.vehicleTypeId]);
+
+  const handleModelSelect = (e) => {
+    const selectedId = parseInt(e.target.value);
+    const selectedModel = models.find((model) => model.id === selectedId);
+
+    updateForm({
+      vehicleModel: selectedModel.name,
+      vehicleId: selectedModel.id,  // Update with the correct property
+    });
+  };
 
   const handleNext = () => {
-    if (formData.vehicleModel) {
+    if (formData.vehicleId) {
       setError(false);
       nextStep();
     } else {
@@ -46,15 +55,15 @@ const ModelStep = ({ formData, updateForm, nextStep, prevStep }) => {
       <FormControl component="fieldset" error={error}>
         <FormLabel>Select a model</FormLabel>
         <RadioGroup
-          value={formData.vehicleModel}
-          onChange={(e) => updateForm({ vehicleModel: e.target.value })}
+          value={formData.vehicleId || ""} // Using vehicleId
+          onChange={handleModelSelect}
         >
-          {models.map((model, index) => (
+          {models.map((model) => (
             <FormControlLabel
-              key={index}
-              value={model}
+              key={model.id}
+              value={model.id}
               control={<Radio />}
-              label={model}
+              label={model.name}
             />
           ))}
         </RadioGroup>

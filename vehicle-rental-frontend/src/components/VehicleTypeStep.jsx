@@ -29,8 +29,8 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
   }, [formData.wheels]);
 
   const handleVehicleTypeSelect = (e) => {
-    const selectedTypeName = e.target.value;
-    const selectedType = vehicleTypes.find((type) => type.name === selectedTypeName);
+    const selectedTypeId = parseInt(e.target.value);
+    const selectedType = vehicleTypes.find((type) => type.id === selectedTypeId);
 
     updateForm({
       vehicleType: selectedType.name,
@@ -39,7 +39,7 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
   };
 
   const handleNext = () => {
-    if (formData.vehicleType) {
+    if (formData.vehicleTypeId) {
       setError(false);
       nextStep();
     } else {
@@ -53,11 +53,11 @@ const VehicleTypeStep = ({ formData, updateForm, nextStep, prevStep }) => {
       <FormControl component="fieldset" error={error}>
         <FormLabel>Choose a vehicle type</FormLabel>
         <RadioGroup
-          value={formData.vehicleType}
+          value={formData.vehicleTypeId || ''}
           onChange={handleVehicleTypeSelect}
         >
           {vehicleTypes.map((type) => (
-            <FormControlLabel key={type.id} value={type.name} control={<Radio />} label={type.name} />
+            <FormControlLabel key={type.id} value={type.id} control={<Radio />} label={type.name} />
           ))}
         </RadioGroup>
       </FormControl>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import NameStep from './components/NameStep';
 import WheelsStep from './components/WheelsStep';
 import VehicleTypeStep from './components/VehicleTypeStep';
@@ -12,6 +13,7 @@ const App = () => {
     lastName: '',
     wheels: '',
     vehicleType: '',
+    vehicleTypeId: '', // Make sure to include this if you're using it
     vehicleModel: '',
     startDate: '',
     endDate: ''
@@ -21,9 +23,15 @@ const App = () => {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  const onSubmit = () => {
-    console.log("Form submitted:", formData);
-    alert("Booking Submitted! Check the console for submitted data.");
+  const onSubmit = async () => {
+    try {
+      const res = await axios.post('http://localhost:3000/api/bookings', formData);
+      console.log("Booking successful:", res.data);
+      alert("Booking Submitted Successfully!");
+    } catch (err) {
+      console.error("Booking submission failed:", err);
+      alert("Failed to submit booking. Try again.");
+    }
   };
 
   const steps = [

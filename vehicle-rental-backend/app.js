@@ -15,6 +15,8 @@ app.use(express.json());
 // Route definitions
 app.use('/api/vehicle-types', vehicleTypeRoutes);
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/bookings', require('./routes/booking'));
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
